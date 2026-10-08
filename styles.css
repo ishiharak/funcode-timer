@@ -184,6 +184,26 @@ h1 {
   cursor: pointer;
 }
 
+.sound-setting {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 16px;
+  color: #8a8f91;
+  font-size: 12px;
+}
+
+.sound-setting select {
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 12px;
+  cursor: pointer;
+}
+
 .select-chevron {
   position: absolute;
   top: 5px;
