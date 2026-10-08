@@ -2,14 +2,15 @@
   color-scheme: light;
   font-family: "Zen Kaku Gothic New", sans-serif;
   color: #202b36;
-  background: #f7f5f0;
+  background: #f5f6f4;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   --ink: #202b36;
   --muted: #899097;
-  --line: #ebe9e3;
+  --line: #e7eae7;
   --orange: #f1744f;
   --teal: #46a995;
+  --surface-shadow: 0 18px 50px rgb(39 46 47 / 6%), 0 2px 8px rgb(39 46 47 / 3%);
 }
 
 * {
@@ -21,8 +22,9 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
-    radial-gradient(ellipse at 85% 9%, rgb(255 225 207 / 38%), transparent 27rem),
-    #f7f5f0;
+    radial-gradient(ellipse at 82% 8%, rgb(255 226 210 / 45%), transparent 29rem),
+    radial-gradient(ellipse at 8% 45%, rgb(219 239 232 / 30%), transparent 32rem),
+    #f5f6f4;
 }
 
 button,
@@ -36,12 +38,17 @@ button {
 }
 
 .app-shell {
-  width: min(100% - 40px, 600px);
+  width: min(100% - 64px, 1080px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  align-items: start;
+  column-gap: clamp(22px, 3.5vw, 42px);
   margin: 0 auto;
 }
 
 .topbar {
   height: 82px;
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -95,8 +102,8 @@ button {
 }
 
 .topbar-button {
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
   padding: 0;
@@ -118,12 +125,13 @@ button {
 }
 
 .timer-card {
+  min-width: 0;
   margin-top: 30px;
-  padding: 27px 34px 21px;
-  border: 1px solid rgb(32 43 54 / 5%);
-  border-radius: 20px;
+  padding: clamp(25px, 3vw, 36px) clamp(22px, 3.2vw, 40px) 22px;
+  border: 1px solid rgb(32 43 54 / 6%);
+  border-radius: 22px;
   background: #fff;
-  box-shadow: 0 14px 40px rgb(39 46 47 / 5%);
+  box-shadow: var(--surface-shadow);
 }
 
 .card-heading,
@@ -185,7 +193,7 @@ h1 {
 }
 
 .timer-display {
-  min-height: 211px;
+  min-height: clamp(220px, 25vw, 290px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -228,7 +236,7 @@ h1 {
 .countdown {
   margin: 0;
   color: var(--ink);
-  font: 400 clamp(76px, 15vw, 106px)/1.14 "DM Mono", monospace;
+  font: 400 clamp(76px, 10vw, 112px)/1.14 "DM Mono", monospace;
   letter-spacing: -0.075em;
   font-variant-numeric: tabular-nums;
 }
@@ -289,7 +297,7 @@ h1 {
 }
 
 .progress-track {
-  height: 5px;
+  height: 7px;
   overflow: hidden;
   border-radius: 10px;
   background: #f0efec;
@@ -311,7 +319,7 @@ h1 {
 }
 
 .button {
-  min-height: 47px;
+  min-height: 50px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -371,7 +379,13 @@ input:focus-visible {
 }
 
 .schedule {
+  min-width: 0;
   margin-top: 30px;
+  padding: 27px 23px 23px;
+  border: 1px solid rgb(32 43 54 / 6%);
+  border-radius: 22px;
+  background: rgb(255 255 255 / 88%);
+  box-shadow: var(--surface-shadow);
 }
 
 .schedule-heading {
@@ -399,6 +413,7 @@ input:focus-visible {
 }
 
 .phase-nav-button {
+  min-height: 38px;
   padding: 7px 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -427,8 +442,8 @@ input:focus-visible {
 
 .schedule-list {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
+  grid-template-columns: 1fr;
+  gap: 7px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -440,15 +455,15 @@ input:focus-visible {
 
 .schedule-item-button {
   width: 100%;
-  min-height: 87px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 4px;
-  padding: 10px;
-  border: 1px solid rgb(32 43 54 / 5%);
-  border-radius: 11px;
-  background: rgb(255 255 255 / 73%);
+  min-height: 66px;
+  display: grid;
+  grid-template-columns: 29px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px;
+  border: 1px solid rgb(32 43 54 / 7%);
+  border-radius: 12px;
+  background: #fff;
   color: #81898c;
   font: inherit;
   text-align: left;
@@ -486,17 +501,18 @@ input:focus-visible {
 
 .schedule-name {
   overflow: hidden;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .schedule-duration {
-  font: 500 10px "DM Mono", monospace;
+  font: 500 11px "DM Mono", monospace;
 }
 
 .footer {
+  grid-column: 1 / -1;
   display: flex;
   justify-content: space-between;
   margin: 25px 2px 24px;
@@ -510,6 +526,11 @@ input:focus-visible {
   border: 0;
   border-radius: 16px;
   box-shadow: 0 20px 70px rgb(32 43 54 / 20%);
+}
+
+.duration-dialog:focus-visible {
+  outline: 3px solid rgb(70 169 149 / 45%);
+  outline-offset: 3px;
 }
 
 .duration-dialog::backdrop {
@@ -549,13 +570,14 @@ input:focus-visible {
   gap: 9px;
 }
 
-@media (max-width: 520px) {
+@media (max-width: 760px) {
   .app-shell {
-    width: min(100% - 28px, 430px);
+    width: min(100% - 40px, 600px);
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .topbar {
-    height: 68px;
+    height: 74px;
   }
 
   .topbar-actions {
@@ -567,12 +589,40 @@ input:focus-visible {
   }
 
   .timer-card {
-    margin-top: 19px;
-    padding: 22px 19px 17px;
+    margin-top: 22px;
+    padding: 25px clamp(18px, 5vw, 30px) 18px;
   }
 
   .timer-display {
-    min-height: 220px;
+    min-height: 240px;
+  }
+
+  .countdown {
+    font-size: clamp(76px, 16vw, 104px);
+  }
+
+  .schedule {
+    margin-top: 22px;
+    padding: 23px;
+  }
+
+  .schedule-list {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .schedule-item-button {
+    min-height: 91px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    padding: 9px 6px;
+    text-align: center;
+  }
+
+  .schedule-name {
+    font-size: 10px;
   }
 
   .time-adjustments {
@@ -584,8 +634,67 @@ input:focus-visible {
     padding: 6px 5px;
   }
 
+}
+
+@media (max-width: 520px) {
+  .app-shell {
+    width: min(100% - 28px, 520px);
+  }
+
+  .topbar {
+    height: 68px;
+  }
+
+  .timer-card {
+    margin-top: 18px;
+    padding: 22px 17px 16px;
+    border-radius: 18px;
+  }
+
+  .card-heading {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .duration-picker {
+    gap: 6px;
+    font-size: 11px;
+  }
+
+  .duration-picker select {
+    min-width: 74px;
+    padding-left: 8px;
+  }
+
+  h1 {
+    font-size: 17px;
+  }
+
+  .timer-display {
+    min-height: 224px;
+  }
+
+  .countdown {
+    font-size: clamp(68px, 19vw, 92px);
+  }
+
+  .phase-name {
+    font-size: 15px;
+  }
+
+  .time-adjustments {
+    gap: 5px;
+  }
+
+  .time-adjust-button {
+    min-width: 0;
+    padding: 7px 8px;
+  }
+
   .schedule {
-    margin-top: 24px;
+    margin-top: 18px;
+    padding: 21px 15px 16px;
+    border-radius: 18px;
   }
 
   .schedule-list {
@@ -594,19 +703,34 @@ input:focus-visible {
   }
 
   .schedule-item-button {
-    min-height: 49px;
+    min-height: 52px;
     display: grid;
-    grid-template-columns: 27px 1fr auto;
-    align-items: center;
+    grid-template-columns: 27px minmax(0, 1fr) auto;
+    justify-content: initial;
     gap: 7px;
     padding: 8px 12px;
+    text-align: left;
   }
 
-  .schedule-name {
-    font-size: 11px;
-  }
-
+  .schedule-name,
   .schedule-duration {
     font-size: 11px;
+  }
+
+  .footer {
+    gap: 12px;
+    margin: 20px 2px;
+    font-size: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
