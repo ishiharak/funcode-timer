@@ -88,6 +88,35 @@ button {
   letter-spacing: 1.8px;
 }
 
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.topbar-button {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 16px;
+}
+
+.topbar-button:hover {
+  background: #f8f7f4;
+}
+
+.topbar-button:focus-visible,
+.time-adjust-button:focus-visible {
+  outline: 3px solid rgb(70 169 149 / 32%);
+  outline-offset: 2px;
+}
+
 .timer-card {
   margin-top: 30px;
   padding: 27px 34px 21px;
@@ -202,6 +231,34 @@ h1 {
   font: 400 clamp(76px, 15vw, 106px)/1.14 "DM Mono", monospace;
   letter-spacing: -0.075em;
   font-variant-numeric: tabular-nums;
+}
+
+.time-adjustments {
+  display: flex;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.time-adjust-button {
+  min-width: 62px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #fff;
+  color: #697276;
+  font: 500 11px "DM Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.time-adjust-button:hover:not(:disabled) {
+  border-color: rgb(70 169 149 / 35%);
+  background: #f3faf8;
+  color: #397f70;
+}
+
+.time-adjust-button:disabled {
+  color: #b9bdbb;
+  cursor: not-allowed;
 }
 
 .phase-caption {
@@ -501,13 +558,30 @@ input:focus-visible {
     height: 68px;
   }
 
+  .topbar-actions {
+    gap: 6px;
+  }
+
+  .topbar-label {
+    display: none;
+  }
+
   .timer-card {
     margin-top: 19px;
     padding: 22px 19px 17px;
   }
 
   .timer-display {
-    min-height: 194px;
+    min-height: 220px;
+  }
+
+  .time-adjustments {
+    gap: 5px;
+  }
+
+  .time-adjust-button {
+    min-width: 56px;
+    padding: 6px 5px;
   }
 
   .schedule {
