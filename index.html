@@ -96,31 +96,46 @@
           </div>
           <span class="schedule-total" id="schedule-total">全 90 分</span>
         </div>
+        <nav class="phase-navigation" aria-label="タイムの移動">
+          <button class="phase-nav-button" id="previous-phase" type="button">← 前のタイム</button>
+          <span class="phase-position" id="phase-position" aria-live="polite">1 / 5</span>
+          <button class="phase-nav-button" id="next-phase" type="button">次のタイム →</button>
+        </nav>
         <ol class="schedule-list" id="schedule-list">
           <li class="schedule-item is-active" data-phase="0">
-            <span class="schedule-number">01</span>
-            <span class="schedule-name">もくもくタイム</span>
-            <span class="schedule-duration">30分</span>
+            <button class="schedule-item-button" type="button" aria-current="step">
+              <span class="schedule-number">01</span>
+              <span class="schedule-name">もくもくタイム</span>
+              <span class="schedule-duration">30分</span>
+            </button>
           </li>
           <li class="schedule-item" data-phase="1">
-            <span class="schedule-number">02</span>
-            <span class="schedule-name">休憩</span>
-            <span class="schedule-duration">5分</span>
+            <button class="schedule-item-button" type="button">
+              <span class="schedule-number">02</span>
+              <span class="schedule-name">休憩</span>
+              <span class="schedule-duration">5分</span>
+            </button>
           </li>
           <li class="schedule-item" data-phase="2">
-            <span class="schedule-number">03</span>
-            <span class="schedule-name">なるほどタイム</span>
-            <span class="schedule-duration">20分</span>
+            <button class="schedule-item-button" type="button">
+              <span class="schedule-number">03</span>
+              <span class="schedule-name">なるほどタイム</span>
+              <span class="schedule-duration">20分</span>
+            </button>
           </li>
           <li class="schedule-item" data-phase="3">
-            <span class="schedule-number">04</span>
-            <span class="schedule-name">休憩</span>
-            <span class="schedule-duration">5分</span>
+            <button class="schedule-item-button" type="button">
+              <span class="schedule-number">04</span>
+              <span class="schedule-name">休憩</span>
+              <span class="schedule-duration">5分</span>
+            </button>
           </li>
           <li class="schedule-item" data-phase="4">
-            <span class="schedule-number">05</span>
-            <span class="schedule-name">もくもくタイム</span>
-            <span class="schedule-duration">30分</span>
+            <button class="schedule-item-button" type="button">
+              <span class="schedule-number">05</span>
+              <span class="schedule-name">もくもくタイム</span>
+              <span class="schedule-duration">30分</span>
+            </button>
           </li>
         </ol>
       </section>

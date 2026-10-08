@@ -333,6 +333,41 @@ input:focus-visible {
   font-size: 11px;
 }
 
+.phase-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 10px;
+  padding: 0 2px;
+}
+
+.phase-nav-button {
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: #657074;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.phase-nav-button:hover:not(:disabled) {
+  border-color: rgb(70 169 149 / 35%);
+  background: #f3faf8;
+  color: #397f70;
+}
+
+.phase-nav-button:disabled {
+  color: #b9bdbb;
+  cursor: not-allowed;
+}
+
+.phase-position {
+  color: #899194;
+  font: 500 11px "DM Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
 .schedule-list {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -344,6 +379,10 @@ input:focus-visible {
 
 .schedule-item {
   min-width: 0;
+}
+
+.schedule-item-button {
+  width: 100%;
   min-height: 87px;
   display: flex;
   flex-direction: column;
@@ -354,16 +393,29 @@ input:focus-visible {
   border-radius: 11px;
   background: rgb(255 255 255 / 73%);
   color: #81898c;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.schedule-item.is-active {
+.schedule-item-button:hover {
+  border-color: rgb(70 169 149 / 35%);
+}
+
+.schedule-item-button:focus-visible,
+.phase-nav-button:focus-visible {
+  outline: 3px solid rgb(70 169 149 / 32%);
+  outline-offset: 2px;
+}
+
+.schedule-item.is-active .schedule-item-button {
   border-color: rgb(241 116 79 / 30%);
   background: #fff1eb;
   color: #bf6043;
 }
 
-.schedule-item.is-complete {
+.schedule-item.is-complete .schedule-item-button {
   border-color: rgb(70 169 149 / 20%);
   background: #eff8f5;
   color: #538f81;
@@ -467,7 +519,7 @@ input:focus-visible {
     gap: 6px;
   }
 
-  .schedule-item {
+  .schedule-item-button {
     min-height: 49px;
     display: grid;
     grid-template-columns: 27px 1fr auto;

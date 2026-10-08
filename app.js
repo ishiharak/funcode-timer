@@ -21,6 +21,9 @@ const resetButton = document.querySelector("#reset-button");
 const statusMessage = document.querySelector("#status-message");
 const scheduleItems = [...document.querySelectorAll(".schedule-item")];
 const scheduleTotal = document.querySelector("#schedule-total");
+const previousPhaseButton = document.querySelector("#previous-phase");
+const nextPhaseButton = document.querySelector("#next-phase");
+const phasePosition = document.querySelector("#phase-position");
 const durationDialog = document.querySelector("#duration-dialog");
 const durationForm = document.querySelector("#duration-form");
 const customDuration = document.querySelector("#custom-duration");
@@ -83,11 +86,22 @@ function update() {
     item.classList.toggle("is-active", !completed && index === currentPhase);
     item.classList.toggle("is-complete", completed || elapsed >= end);
     item.querySelector(".schedule-duration").textContent = `${phases[index].seconds / 60}分`;
+    if (index === currentPhase && !completed) {
+      item.querySelector("button").setAttribute("aria-current", "step");
+    } else {
+      item.querySelector("button").removeAttribute("aria-current");
+    }
     start = end;
   });
+  const displayedPhase = completed ? phases.length - 1 : currentPhase;
+  phasePosition.textContent = `${displayedPhase + 1} / ${phases.length}`;
+  previousPhaseButton.disabled = displayedPhase === 0;
+  nextPhaseButton.disabled = completed || displayedPhase === phases.length - 1;
 
   if (completed) {
     stopTimer();
+    elapsedBeforeStart = totalMinutes * 60;
+    startedAt = null;
     statusMessage.textContent = "授業が終了しました";
     startButton.disabled = true;
   }
@@ -106,7 +120,6 @@ function startTimer() {
   intervalId = window.setInterval(update, 200);
   startButton.innerHTML = '<span class="button-icon" aria-hidden="true">Ⅱ</span><span>一時停止</span>';
   statusMessage.textContent = "授業中";
-  durationSelect.disabled = true;
   update();
 }
 
@@ -132,8 +145,42 @@ function resetTimer() {
 }
 
 function setDuration(minutes) {
+  const wasRunning = startedAt !== null;
+  elapsedBeforeStart = getElapsedSeconds();
   totalMinutes = minutes;
-  resetTimer();
+  startedAt = wasRunning ? Date.now() : null;
+  startButton.disabled = false;
+  startButton.innerHTML = wasRunning
+    ? '<span class="button-icon" aria-hidden="true">Ⅱ</span><span>一時停止</span>'
+    : elapsedBeforeStart > 0
+      ? '<span class="button-icon" aria-hidden="true">▶</span><span>再開</span>'
+      : '<span class="button-icon" aria-hidden="true">▶</span><span>スタート</span>';
+  statusMessage.textContent = wasRunning
+    ? "授業中"
+    : elapsedBeforeStart > 0
+      ? "一時停止中"
+      : "準備ができたらスタート";
+  update();
+}
+
+function goToPhase(index) {
+  const phases = getPhases();
+  const phaseStart = phases.slice(0, index).reduce((sum, phase) => sum + phase.seconds, 0);
+  const wasRunning = startedAt !== null;
+  stopTimer();
+  elapsedBeforeStart = phaseStart;
+  startedAt = wasRunning ? Date.now() : null;
+
+  if (wasRunning) {
+    intervalId = window.setInterval(update, 200);
+    startButton.innerHTML = '<span class="button-icon" aria-hidden="true">Ⅱ</span><span>一時停止</span>';
+    statusMessage.textContent = "授業中";
+  } else {
+    startButton.disabled = false;
+    startButton.innerHTML = '<span class="button-icon" aria-hidden="true">▶</span><span>再開</span>';
+    statusMessage.textContent = "一時停止中";
+  }
+  update();
 }
 
 startButton.addEventListener("click", () => {
@@ -142,6 +189,18 @@ startButton.addEventListener("click", () => {
 });
 
 resetButton.addEventListener("click", resetTimer);
+previousPhaseButton.addEventListener("click", () => {
+  const phase = currentPhase === -1 ? phaseDefinitions.length - 1 : currentPhase - 1;
+  if (phase >= 0) goToPhase(phase);
+});
+nextPhaseButton.addEventListener("click", () => {
+  if (currentPhase >= 0 && currentPhase < phaseDefinitions.length - 1) {
+    goToPhase(currentPhase + 1);
+  }
+});
+scheduleItems.forEach((item, index) => {
+  item.querySelector("button").addEventListener("click", () => goToPhase(index));
+});
 
 durationSelect.addEventListener("change", () => {
   if (durationSelect.value === "custom") {
@@ -154,7 +213,8 @@ durationSelect.addEventListener("change", () => {
 
 durationDialog.addEventListener("close", () => {
   if (durationDialog.returnValue !== "apply") {
-    durationSelect.value = String(totalMinutes);
+    const matchingPreset = [...durationSelect.options].some((option) => option.value === String(totalMinutes));
+    durationSelect.value = matchingPreset ? String(totalMinutes) : "custom";
   }
 });
 
