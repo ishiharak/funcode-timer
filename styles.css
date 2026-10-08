@@ -734,25 +734,3 @@ input:focus-visible {
     animation-iteration-count: 1 !important;
   }
 }
-  .schedule-list {
-    grid-template-columns: 1fr;
-    gap: 6px;
-  }
-
-  .schedule-item-button {
-    min-height: 49px;
-    display: grid;
-    grid-template-columns: 27px 1fr auto;
-    align-items: center;
-    gap: 7px;
-    padding: 8px 12px;
-  }
-
-  .schedule-name {
-    font-size: 11px;
-  }
-
-  .schedule-duration {
-    font-size: 11px;
-  }
-}
