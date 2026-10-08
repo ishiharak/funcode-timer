@@ -27,12 +27,19 @@ const phasePosition = document.querySelector("#phase-position");
 const durationDialog = document.querySelector("#duration-dialog");
 const durationForm = document.querySelector("#duration-form");
 const customDuration = document.querySelector("#custom-duration");
+const muteButton = document.querySelector("#mute-button");
+const fullscreenButton = document.querySelector("#fullscreen-button");
+const timeAdjustButtons = [...document.querySelectorAll(".time-adjust-button")];
 
 let totalMinutes = DEFAULT_DURATION;
 let elapsedBeforeStart = 0;
 let startedAt = null;
 let intervalId = null;
 let currentPhase = 0;
+let phaseAdjustments = phaseDefinitions.map(() => 0);
+let muted = false;
+let audioContext = null;
+let wasCompleted = false;
 
 function getElapsedSeconds() {
   return elapsedBeforeStart + (startedAt === null ? 0 : (Date.now() - startedAt) / 1000);
@@ -40,8 +47,22 @@ function getElapsedSeconds() {
 
 function getPhases() {
   const phases = phaseDefinitions.map((phase) => ({ ...phase }));
-  phases[4].seconds = totalMinutes * 60 - phases.slice(0, 4).reduce((sum, phase) => sum + phase.seconds, 0);
+  phases.forEach((phase, index) => {
+    if (index < phases.length - 1) phase.seconds += phaseAdjustments[index];
+  });
+  phases[4].seconds =
+    totalMinutes * 60 -
+    phaseDefinitions.slice(0, 4).reduce((sum, phase) => sum + phase.seconds, 0) +
+    phaseAdjustments[4];
   return phases;
+}
+
+function getTotalDurationSeconds(phases = getPhases()) {
+  return phases.reduce((sum, phase) => sum + phase.seconds, 0);
+}
+
+function formatMinutes(seconds) {
+  return String(Number((seconds / 60).toFixed(1)));
 }
 
 function formatTime(seconds) {
@@ -52,8 +73,9 @@ function formatTime(seconds) {
 }
 
 function update() {
-  const elapsed = Math.min(getElapsedSeconds(), totalMinutes * 60);
   const phases = getPhases();
+  const totalSeconds = getTotalDurationSeconds(phases);
+  const elapsed = Math.min(getElapsedSeconds(), totalSeconds);
   let phaseStart = 0;
   currentPhase = phases.findIndex((phase) => {
     const phaseEnd = phaseStart + phase.seconds;
@@ -74,18 +96,18 @@ function update() {
   }
 
   document.querySelector(".phase-marker").dataset.phaseColor = completed ? "complete" : phases[currentPhase].color;
-  progressFill.style.width = `${(elapsed / (totalMinutes * 60)) * 100}%`;
-  progressLabel.innerHTML = `${Math.floor(elapsed / 60)}<span class="progress-divider"> / </span>${totalMinutes}分`;
-  progressTrack.setAttribute("aria-valuemax", String(totalMinutes));
-  progressTrack.setAttribute("aria-valuenow", String(Math.floor(elapsed / 60)));
-  scheduleTotal.textContent = `全 ${totalMinutes} 分`;
+  progressFill.style.width = `${(elapsed / totalSeconds) * 100}%`;
+  progressLabel.innerHTML = `${Math.floor(elapsed / 60)}<span class="progress-divider"> / </span>${formatMinutes(totalSeconds)}分`;
+  progressTrack.setAttribute("aria-valuemax", String(totalSeconds / 60));
+  progressTrack.setAttribute("aria-valuenow", String(elapsed / 60));
+  scheduleTotal.textContent = `全 ${formatMinutes(totalSeconds)} 分`;
 
   let start = 0;
   scheduleItems.forEach((item, index) => {
     const end = start + phases[index].seconds;
     item.classList.toggle("is-active", !completed && index === currentPhase);
     item.classList.toggle("is-complete", completed || elapsed >= end);
-    item.querySelector(".schedule-duration").textContent = `${phases[index].seconds / 60}分`;
+    item.querySelector(".schedule-duration").textContent = `${formatMinutes(phases[index].seconds)}分`;
     if (index === currentPhase && !completed) {
       item.querySelector("button").setAttribute("aria-current", "step");
     } else {
@@ -100,11 +122,13 @@ function update() {
 
   if (completed) {
     stopTimer();
-    elapsedBeforeStart = totalMinutes * 60;
+    elapsedBeforeStart = totalSeconds;
     startedAt = null;
     statusMessage.textContent = "授業が終了しました";
     startButton.disabled = true;
+    if (!wasCompleted) playCompletionSound();
   }
+  wasCompleted = completed;
 }
 
 function stopTimer() {
@@ -115,7 +139,8 @@ function stopTimer() {
 }
 
 function startTimer() {
-  if (startedAt !== null || getElapsedSeconds() >= totalMinutes * 60) return;
+  if (startedAt !== null || getElapsedSeconds() >= getTotalDurationSeconds()) return;
+  prepareAudio();
   startedAt = Date.now();
   intervalId = window.setInterval(update, 200);
   startButton.innerHTML = '<span class="button-icon" aria-hidden="true">Ⅱ</span><span>一時停止</span>';
@@ -137,6 +162,8 @@ function resetTimer() {
   stopTimer();
   elapsedBeforeStart = 0;
   startedAt = null;
+  phaseAdjustments = phaseDefinitions.map(() => 0);
+  wasCompleted = false;
   startButton.disabled = false;
   startButton.innerHTML = '<span class="button-icon" aria-hidden="true">▶</span><span>スタート</span>';
   durationSelect.disabled = false;
@@ -148,6 +175,8 @@ function setDuration(minutes) {
   const wasRunning = startedAt !== null;
   elapsedBeforeStart = getElapsedSeconds();
   totalMinutes = minutes;
+  phaseAdjustments = phaseDefinitions.map(() => 0);
+  wasCompleted = false;
   startedAt = wasRunning ? Date.now() : null;
   startButton.disabled = false;
   startButton.innerHTML = wasRunning
@@ -181,6 +210,42 @@ function goToPhase(index) {
     statusMessage.textContent = "一時停止中";
   }
   update();
+}
+
+function adjustRemainingTime(deltaSeconds) {
+  if (currentPhase < 0) return;
+  const phases = getPhases();
+  const phaseStart = phases.slice(0, currentPhase).reduce((sum, phase) => sum + phase.seconds, 0);
+  const remaining = Math.max(0, phaseStart + phases[currentPhase].seconds - getElapsedSeconds());
+  const adjustment = Math.max(deltaSeconds, -remaining);
+  phaseAdjustments[currentPhase] += adjustment;
+  update();
+}
+
+function prepareAudio() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return;
+  audioContext ??= new AudioContextClass();
+  if (audioContext.state === "suspended") audioContext.resume().catch(() => {});
+}
+
+function playCompletionSound() {
+  if (muted) return;
+  prepareAudio();
+  if (!audioContext) return;
+  const oscillator = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+  oscillator.connect(gain);
+  gain.connect(audioContext.destination);
+  oscillator.type = "sine";
+  oscillator.frequency.setValueAtTime(660, audioContext.currentTime);
+  oscillator.frequency.setValueAtTime(880, audioContext.currentTime + 0.18);
+  gain.gain.setValueAtTime(0.001, audioContext.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.18, audioContext.currentTime + 0.03);
+  gain.gain.setValueAtTime(0.18, audioContext.currentTime + 0.32);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.55);
+  oscillator.start();
+  oscillator.stop(audioContext.currentTime + 0.56);
 }
 
 startButton.addEventListener("click", () => {
@@ -234,5 +299,33 @@ durationForm.addEventListener("submit", (event) => {
 });
 
 customDuration.addEventListener("input", () => customDuration.setCustomValidity(""));
+
+muteButton.addEventListener("click", () => {
+  muted = !muted;
+  muteButton.setAttribute("aria-pressed", String(muted));
+  muteButton.setAttribute("aria-label", muted ? "サウンドをオン" : "サウンドを消音");
+  muteButton.querySelector("span").textContent = muted ? "🔇" : "🔊";
+});
+
+fullscreenButton.disabled = !document.fullscreenEnabled;
+fullscreenButton.addEventListener("click", async () => {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.querySelector(".app-shell").requestFullscreen();
+  } catch {
+    statusMessage.textContent = "全画面表示にできませんでした";
+  }
+});
+
+document.addEventListener("fullscreenchange", () => {
+  const isFullscreen = document.fullscreenElement !== null;
+  fullscreenButton.setAttribute("aria-pressed", String(isFullscreen));
+  fullscreenButton.setAttribute("aria-label", isFullscreen ? "全画面表示を終了" : "画面を最大化");
+  fullscreenButton.title = isFullscreen ? "全画面表示を終了" : "画面を最大化";
+});
+
+timeAdjustButtons.forEach((button) => {
+  button.addEventListener("click", () => adjustRemainingTime(Number(button.dataset.adjustSeconds)));
+});
 
 update();
