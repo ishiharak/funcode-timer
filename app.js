@@ -8,8 +8,14 @@ const phaseDefinitions = [
   { name: "休憩", seconds: 5 * 60, caption: "もうひと休み。あと少し！", color: "break" },
   { name: "もくもくタイム", seconds: 0, caption: "学んだことを、やってみよう。", color: "focus" },
 ];
+const completionSounds = {
+  bell: { notes: [880, 1174], interval: 0.23, duration: 0.42, harmonic: true },
+  chime: { notes: [1046, 1318, 1568], interval: 0.13, duration: 0.28, harmonic: true },
+  soft: { notes: [659, 880], interval: 0.25, duration: 0.35, waveform: "triangle" },
+};
 
 const durationSelect = document.querySelector("#duration");
+const soundSelect = document.querySelector("#sound-select");
 const phaseName = document.querySelector("#phase-name");
 const countdown = document.querySelector("#countdown");
 const phaseCaption = document.querySelector("#phase-caption");
@@ -39,7 +45,6 @@ let currentPhase = 0;
 let phaseAdjustments = phaseDefinitions.map(() => 0);
 let muted = false;
 let audioContext = null;
-let wasCompleted = false;
 
 function getElapsedSeconds() {
   return elapsedBeforeStart + (startedAt === null ? 0 : (Date.now() - startedAt) / 1000);
@@ -72,10 +77,11 @@ function formatTime(seconds) {
   return `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
 }
 
-function update() {
+function update(shouldPlayPhaseSound = false) {
   const phases = getPhases();
   const totalSeconds = getTotalDurationSeconds(phases);
   const elapsed = Math.min(getElapsedSeconds(), totalSeconds);
+  const previousPhase = currentPhase;
   let phaseStart = 0;
   currentPhase = phases.findIndex((phase) => {
     const phaseEnd = phaseStart + phase.seconds;
@@ -85,6 +91,7 @@ function update() {
   });
 
   const completed = currentPhase === -1;
+  if (shouldPlayPhaseSound && currentPhase !== previousPhase) playCompletionSound();
   if (completed) {
     phaseName.textContent = "授業終了";
     countdown.textContent = "00:00";
@@ -126,9 +133,7 @@ function update() {
     startedAt = null;
     statusMessage.textContent = "授業が終了しました";
     startButton.disabled = true;
-    if (!wasCompleted) playCompletionSound();
   }
-  wasCompleted = completed;
 }
 
 function stopTimer() {
@@ -142,7 +147,7 @@ function startTimer() {
   if (startedAt !== null || getElapsedSeconds() >= getTotalDurationSeconds()) return;
   prepareAudio();
   startedAt = Date.now();
-  intervalId = window.setInterval(update, 200);
+  intervalId = window.setInterval(() => update(true), 200);
   startButton.innerHTML = '<span class="button-icon" aria-hidden="true">Ⅱ</span><span>一時停止</span>';
   statusMessage.textContent = "授業中";
   update();
@@ -163,7 +168,6 @@ function resetTimer() {
   elapsedBeforeStart = 0;
   startedAt = null;
   phaseAdjustments = phaseDefinitions.map(() => 0);
-  wasCompleted = false;
   startButton.disabled = false;
   startButton.innerHTML = '<span class="button-icon" aria-hidden="true">▶</span><span>スタート</span>';
   durationSelect.disabled = false;
@@ -176,7 +180,6 @@ function setDuration(minutes) {
   elapsedBeforeStart = getElapsedSeconds();
   totalMinutes = minutes;
   phaseAdjustments = phaseDefinitions.map(() => 0);
-  wasCompleted = false;
   startedAt = wasRunning ? Date.now() : null;
   startButton.disabled = false;
   startButton.innerHTML = wasRunning
@@ -233,19 +236,26 @@ function playCompletionSound() {
   if (muted) return;
   prepareAudio();
   if (!audioContext) return;
-  const oscillator = audioContext.createOscillator();
-  const gain = audioContext.createGain();
-  oscillator.connect(gain);
-  gain.connect(audioContext.destination);
-  oscillator.type = "sine";
-  oscillator.frequency.setValueAtTime(660, audioContext.currentTime);
-  oscillator.frequency.setValueAtTime(880, audioContext.currentTime + 0.18);
-  gain.gain.setValueAtTime(0.001, audioContext.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.18, audioContext.currentTime + 0.03);
-  gain.gain.setValueAtTime(0.18, audioContext.currentTime + 0.32);
-  gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.55);
-  oscillator.start();
-  oscillator.stop(audioContext.currentTime + 0.56);
+  const sound = completionSounds[soundSelect.value] ?? completionSounds.bell;
+  const playTone = (frequency, volume, startTime, duration) => {
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.type = sound.waveform ?? "sine";
+    oscillator.frequency.setValueAtTime(frequency, startTime);
+    gain.gain.setValueAtTime(0.001, startTime);
+    gain.gain.exponentialRampToValueAtTime(volume, startTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+    oscillator.start(startTime);
+    oscillator.stop(startTime + duration);
+  };
+  const startTime = audioContext.currentTime;
+  sound.notes.forEach((frequency, index) => {
+    const noteStart = startTime + index * sound.interval;
+    playTone(frequency, 0.18, noteStart, sound.duration);
+    if (sound.harmonic) playTone(frequency * 2.76, 0.035, noteStart, sound.duration * 0.65);
+  });
 }
 
 startButton.addEventListener("click", () => {
