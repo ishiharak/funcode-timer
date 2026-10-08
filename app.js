@@ -139,7 +139,7 @@ function stopTimer() {
 }
 
 function startTimer() {
-  if (startedAt !== null || getElapsedSeconds() >= totalMinutes * 60) return;
+  if (startedAt !== null || getElapsedSeconds() >= getTotalDurationSeconds()) return;
   prepareAudio();
   startedAt = Date.now();
   intervalId = window.setInterval(update, 200);
@@ -226,7 +226,7 @@ function prepareAudio() {
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   if (!AudioContextClass) return;
   audioContext ??= new AudioContextClass();
-  if (audioContext.state === "suspended") audioContext.resume();
+  if (audioContext.state === "suspended") audioContext.resume().catch(() => {});
 }
 
 function playCompletionSound() {
@@ -321,7 +321,7 @@ document.addEventListener("fullscreenchange", () => {
   const isFullscreen = document.fullscreenElement !== null;
   fullscreenButton.setAttribute("aria-pressed", String(isFullscreen));
   fullscreenButton.setAttribute("aria-label", isFullscreen ? "全画面表示を終了" : "画面を最大化");
-  fullscreenButton.querySelector("span").textContent = isFullscreen ? "⛶" : "⛶";
+  fullscreenButton.title = isFullscreen ? "全画面表示を終了" : "画面を最大化";
 });
 
 timeAdjustButtons.forEach((button) => {
