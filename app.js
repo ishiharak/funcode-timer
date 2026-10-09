@@ -286,6 +286,8 @@ durationSelect.addEventListener("change", () => {
   }
 });
 
+soundSelect.addEventListener("change", playCompletionSound);
+
 durationDialog.addEventListener("close", () => {
   if (durationDialog.returnValue !== "apply") {
     const matchingPreset = [...durationSelect.options].some((option) => option.value === String(totalMinutes));
