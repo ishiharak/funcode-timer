@@ -141,21 +141,25 @@ button {
 }
 
 .brand-mark {
-  width: 34px;
+  width: 57px;
   height: 34px;
   flex: none;
 }
 
-.brand-bracket {
-  fill: none;
-  stroke: var(--ink);
-  stroke-width: 2.2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.brand-glyph {
+  font: 800 28px "JetBrains Mono", monospace;
 }
 
-.brand-dot {
+.brand-lt {
   fill: var(--accent);
+}
+
+.brand-slash {
+  fill: #cccccc;
+}
+
+.brand-f {
+  fill: #5b9bd5;
 }
 
 .brand-name {
@@ -1056,7 +1060,7 @@ body.is-seeking .progress-fill {
   }
 
   .brand-mark {
-    width: 28px;
+    width: 47px;
     height: 28px;
   }
 
