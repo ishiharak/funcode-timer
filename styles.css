@@ -21,6 +21,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  padding: clamp(16px, 3vw, 32px);
   background:
     radial-gradient(ellipse at 82% 8%, rgb(255 226 210 / 45%), transparent 29rem),
     radial-gradient(ellipse at 8% 45%, rgb(219 239 232 / 30%), transparent 32rem),
@@ -38,7 +39,7 @@ button {
 }
 
 .app-shell {
-  width: min(100% - 64px, 1080px);
+  width: min(100%, 1080px);
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
   align-items: start;
@@ -592,7 +593,6 @@ input:focus-visible {
 
 @media (max-width: 760px) {
   .app-shell {
-    width: min(100% - 40px, 600px);
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -657,10 +657,6 @@ input:focus-visible {
 }
 
 @media (max-width: 520px) {
-  .app-shell {
-    width: min(100% - 28px, 520px);
-  }
-
   .topbar {
     height: 68px;
   }
@@ -741,6 +737,109 @@ input:focus-visible {
     gap: 12px;
     margin: 20px 2px;
     font-size: 9px;
+  }
+}
+
+:root:fullscreen {
+  height: 100%;
+  overflow: hidden;
+}
+
+:root:fullscreen body {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  padding: clamp(8px, 1.5vw, 20px);
+}
+
+:root:fullscreen .app-shell {
+  height: 100%;
+  grid-template-rows: clamp(48px, 8vh, 68px) minmax(0, 1fr) auto;
+  align-items: stretch;
+  row-gap: clamp(8px, 1.2vh, 12px);
+}
+
+:root:fullscreen .topbar {
+  height: 100%;
+}
+
+:root:fullscreen .timer-card,
+:root:fullscreen .schedule {
+  height: 100%;
+  min-height: 0;
+  margin-top: 0;
+}
+
+:root:fullscreen .timer-card {
+  display: flex;
+  flex-direction: column;
+  padding: clamp(12px, 2vh, 24px) clamp(14px, 2vw, 28px) 12px;
+}
+
+:root:fullscreen .timer-display {
+  flex: 1;
+  min-height: 0;
+  padding: clamp(8px, 1.5vh, 16px) 0;
+}
+
+:root:fullscreen .countdown {
+  font-size: clamp(46px, min(10vw, 14vh), 112px);
+}
+
+:root:fullscreen .progress-section {
+  padding-bottom: clamp(8px, 1.3vh, 16px);
+}
+
+:root:fullscreen .button {
+  min-height: clamp(40px, 6vh, 50px);
+}
+
+:root:fullscreen .status-message {
+  min-height: 14px;
+  margin-top: 8px;
+}
+
+:root:fullscreen .schedule {
+  display: flex;
+  flex-direction: column;
+  padding: clamp(12px, 1.8vh, 22px) clamp(12px, 1.8vw, 22px);
+}
+
+:root:fullscreen .schedule-heading {
+  margin-bottom: 8px;
+}
+
+:root:fullscreen .phase-navigation {
+  margin-bottom: 8px;
+}
+
+:root:fullscreen .schedule-list {
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(5, minmax(0, 1fr));
+  gap: clamp(3px, 0.8vh, 7px);
+}
+
+:root:fullscreen .schedule-item-button {
+  height: 100%;
+  min-height: 0;
+  padding: 5px 8px;
+}
+
+:root:fullscreen .footer {
+  margin: 0 2px;
+}
+
+@media (max-width: 760px) {
+  :root:fullscreen .app-shell {
+    grid-template-rows: clamp(48px, 8vh, 68px) minmax(0, 1.5fr) minmax(0, 1fr) auto;
+  }
+}
+
+@media (max-width: 520px) {
+  :root:fullscreen .schedule-item-button {
+    padding: 3px 8px;
   }
 }
 
