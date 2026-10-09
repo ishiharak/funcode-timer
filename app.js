@@ -40,9 +40,12 @@ const durationForm = document.querySelector("#duration-form");
 const customDuration = document.querySelector("#custom-duration");
 const muteButton = document.querySelector("#mute-button");
 const fullscreenButton = document.querySelector("#fullscreen-button");
-const timeAdjustButtons = [...document.querySelectorAll(".time-adjust-button")];
+const dial = document.querySelector(".dial");
 const dialHand = document.querySelector("#dial-hand");
 const dialArc = document.querySelector("#dial-arc");
+const dialHandle = document.querySelector("#dial-handle");
+const dialHandleKnob = document.querySelector("#dial-handle-knob");
+const progressHandle = document.querySelector("#progress-handle");
 const progressTicks = [...document.querySelectorAll(".progress-tick")];
 
 let totalMinutes = DEFAULT_DURATION;
@@ -52,6 +55,7 @@ let intervalId = null;
 let currentPhase = 0;
 let muted = false;
 let audioContext = null;
+let seek = null;
 
 function setStartButton(icon, label) {
   startButton.innerHTML = `<span class="button-icon" aria-hidden="true">${buttonIcons[icon]}</span><span>${label}</span>`;
@@ -110,6 +114,7 @@ function update(shouldPlayPhaseSound = false) {
   document.body.dataset.phase = completed ? "complete" : phases[currentPhase].color;
   const phaseProgress = completed ? 1 : Math.min(1, Math.max(0, (elapsed - phaseStart) / phases[currentPhase].seconds));
   dialHand.style.transform = `rotate(${phaseProgress * 360 - 90}deg)`;
+  dialHandle.style.transform = `rotate(${phaseProgress * 360 - 90}deg)`;
   dialArc.style.strokeDasharray = `${(1 - phaseProgress) * 100} 100`;
   let boundary = 0;
   progressTicks.forEach((tick, index) => {
@@ -117,6 +122,7 @@ function update(shouldPlayPhaseSound = false) {
     tick.style.left = `${(boundary / totalSeconds) * 100}%`;
   });
   progressFill.style.width = `${(elapsed / totalSeconds) * 100}%`;
+  progressHandle.style.left = `${(elapsed / totalSeconds) * 100}%`;
   progressLabel.innerHTML = `${Math.floor(elapsed / 60)}<span class="progress-divider"> / </span>${formatMinutes(totalSeconds)}分`;
   progressTrack.setAttribute("aria-valuemax", String(totalSeconds / 60));
   progressTrack.setAttribute("aria-valuenow", String(elapsed / 60));
@@ -139,9 +145,6 @@ function update(shouldPlayPhaseSound = false) {
   phasePosition.textContent = `${displayedPhase + 1} / ${phases.length}`;
   previousPhaseButton.disabled = displayedPhase === 0;
   nextPhaseButton.disabled = completed || displayedPhase === phases.length - 1;
-  timeAdjustButtons.forEach((button) => {
-    button.disabled = completed;
-  });
 
   if (completed) {
     stopTimer();
@@ -190,19 +193,19 @@ function resetTimer() {
   update();
 }
 
+function syncControls(running) {
+  startButton.disabled = false;
+  if (running) setStartButton("pause", "一時停止");
+  else setStartButton("play", elapsedBeforeStart > 0 ? "再開" : "スタート");
+  statusMessage.textContent = running ? "授業中" : elapsedBeforeStart > 0 ? "一時停止中" : "準備ができたらスタート";
+}
+
 function setDuration(minutes) {
   const wasRunning = startedAt !== null;
   elapsedBeforeStart = getElapsedSeconds();
   totalMinutes = minutes;
   startedAt = wasRunning ? Date.now() : null;
-  startButton.disabled = false;
-  if (wasRunning) setStartButton("pause", "一時停止");
-  else setStartButton("play", elapsedBeforeStart > 0 ? "再開" : "スタート");
-  statusMessage.textContent = wasRunning
-    ? "授業中"
-    : elapsedBeforeStart > 0
-      ? "一時停止中"
-      : "準備ができたらスタート";
+  syncControls(wasRunning);
   update();
 }
 
@@ -226,11 +229,68 @@ function goToPhase(index) {
   update();
 }
 
-function adjustRemainingTime(deltaSeconds) {
-  if (currentPhase < 0) return;
+function getDialFraction(event) {
+  const rect = dial.getBoundingClientRect();
+  const angle = Math.atan2(event.clientY - (rect.top + rect.height / 2), event.clientX - (rect.left + rect.width / 2));
+  return (((angle / (2 * Math.PI) + 0.25) % 1) + 1) % 1;
+}
+
+function getProgressFraction(event) {
+  const rect = progressTrack.getBoundingClientRect();
+  return (event.clientX - rect.left) / rect.width;
+}
+
+function startSeek(event, handle, mode) {
+  if (seek || event.button !== 0 || (mode === "dial" && currentPhase < 0)) return;
+  event.preventDefault();
   const totalSeconds = getTotalDurationSeconds();
-  elapsedBeforeStart = Math.min(totalSeconds, Math.max(0, getElapsedSeconds() - deltaSeconds));
-  if (startedAt !== null) startedAt = Date.now();
+  const elapsed = Math.min(getElapsedSeconds(), totalSeconds);
+  const resume = startedAt !== null;
+  if (resume) {
+    elapsedBeforeStart = elapsed;
+    startedAt = null;
+    stopTimer();
+  }
+  seek = { handle, mode, pointerId: event.pointerId, resume };
+  if (mode === "dial") {
+    const phases = getPhases();
+    seek.phaseStart = phases.slice(0, currentPhase).reduce((sum, phase) => sum + phase.seconds, 0);
+    seek.phaseSeconds = phases[currentPhase].seconds;
+    seek.fraction = (elapsed - seek.phaseStart) / seek.phaseSeconds;
+    seek.offset = ((seek.fraction - getDialFraction(event) + 1.5) % 1) - 0.5;
+  } else {
+    seek.offset = elapsed / totalSeconds - getProgressFraction(event);
+  }
+  handle.setPointerCapture(event.pointerId);
+  document.body.classList.add("is-seeking");
+}
+
+function moveSeek(event) {
+  if (!seek || event.pointerId !== seek.pointerId) return;
+  let seconds;
+  if (seek.mode === "dial") {
+    let fraction = (getDialFraction(event) + seek.offset + 1) % 1;
+    if (Math.abs(fraction - seek.fraction) > 0.5) fraction = seek.fraction > 0.5 ? 1 : 0;
+    seek.fraction = fraction;
+    seconds = seek.phaseStart + Math.min(Math.round(fraction * seek.phaseSeconds), seek.phaseSeconds - 1);
+  } else {
+    seconds = Math.round(Math.min(1, Math.max(0, getProgressFraction(event) + seek.offset)) * getTotalDurationSeconds());
+  }
+  elapsedBeforeStart = Math.min(getTotalDurationSeconds(), Math.max(0, seconds));
+  if (elapsedBeforeStart < getTotalDurationSeconds()) syncControls(seek.resume);
+  update();
+}
+
+function endSeek(event) {
+  if (!seek || event.pointerId !== seek.pointerId) return;
+  const { handle, pointerId, resume } = seek;
+  seek = null;
+  document.body.classList.remove("is-seeking");
+  if (handle.hasPointerCapture(pointerId)) handle.releasePointerCapture(pointerId);
+  if (resume && elapsedBeforeStart < getTotalDurationSeconds()) {
+    startedAt = Date.now();
+    intervalId = window.setInterval(() => update(true), 200);
+  }
   update();
 }
 
@@ -344,8 +404,15 @@ document.addEventListener("fullscreenchange", () => {
   fullscreenButton.title = isFullscreen ? "全画面表示を終了" : "画面を最大化";
 });
 
-timeAdjustButtons.forEach((button) => {
-  button.addEventListener("click", () => adjustRemainingTime(Number(button.dataset.adjustSeconds)));
+[
+  [dialHandleKnob, "dial"],
+  [progressHandle, "progress"],
+].forEach(([handle, mode]) => {
+  handle.addEventListener("pointerdown", (event) => startSeek(event, handle, mode));
+  handle.addEventListener("pointermove", moveSeek);
+  handle.addEventListener("pointerup", endSeek);
+  handle.addEventListener("pointercancel", endSeek);
+  handle.addEventListener("lostpointercapture", endSeek);
 });
 
 update();
