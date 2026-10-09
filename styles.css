@@ -21,6 +21,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  padding: clamp(16px, 3vw, 32px);
   background:
     radial-gradient(ellipse at 82% 8%, rgb(255 226 210 / 45%), transparent 29rem),
     radial-gradient(ellipse at 8% 45%, rgb(219 239 232 / 30%), transparent 32rem),
@@ -38,7 +39,7 @@ button {
 }
 
 .app-shell {
-  width: min(100% - 64px, 1080px);
+  width: min(100%, 1080px);
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
   align-items: start;
@@ -592,7 +593,6 @@ input:focus-visible {
 
 @media (max-width: 760px) {
   .app-shell {
-    width: min(100% - 40px, 600px);
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -657,10 +657,6 @@ input:focus-visible {
 }
 
 @media (max-width: 520px) {
-  .app-shell {
-    width: min(100% - 28px, 520px);
-  }
-
   .topbar {
     height: 68px;
   }
