@@ -42,7 +42,6 @@ let elapsedBeforeStart = 0;
 let startedAt = null;
 let intervalId = null;
 let currentPhase = 0;
-let phaseAdjustments = phaseDefinitions.map(() => 0);
 let muted = false;
 let audioContext = null;
 
@@ -52,13 +51,7 @@ function getElapsedSeconds() {
 
 function getPhases() {
   const phases = phaseDefinitions.map((phase) => ({ ...phase }));
-  phases.forEach((phase, index) => {
-    if (index < phases.length - 1) phase.seconds += phaseAdjustments[index];
-  });
-  phases[4].seconds =
-    totalMinutes * 60 -
-    phaseDefinitions.slice(0, 4).reduce((sum, phase) => sum + phase.seconds, 0) +
-    phaseAdjustments[4];
+  phases[4].seconds = totalMinutes * 60 - phases.slice(0, 4).reduce((sum, phase) => sum + phase.seconds, 0);
   return phases;
 }
 
@@ -126,6 +119,9 @@ function update(shouldPlayPhaseSound = false) {
   phasePosition.textContent = `${displayedPhase + 1} / ${phases.length}`;
   previousPhaseButton.disabled = displayedPhase === 0;
   nextPhaseButton.disabled = completed || displayedPhase === phases.length - 1;
+  timeAdjustButtons.forEach((button) => {
+    button.disabled = completed;
+  });
 
   if (completed) {
     stopTimer();
@@ -167,7 +163,6 @@ function resetTimer() {
   stopTimer();
   elapsedBeforeStart = 0;
   startedAt = null;
-  phaseAdjustments = phaseDefinitions.map(() => 0);
   startButton.disabled = false;
   startButton.innerHTML = '<span class="button-icon" aria-hidden="true">▶</span><span>スタート</span>';
   durationSelect.disabled = false;
@@ -179,7 +174,6 @@ function setDuration(minutes) {
   const wasRunning = startedAt !== null;
   elapsedBeforeStart = getElapsedSeconds();
   totalMinutes = minutes;
-  phaseAdjustments = phaseDefinitions.map(() => 0);
   startedAt = wasRunning ? Date.now() : null;
   startButton.disabled = false;
   startButton.innerHTML = wasRunning
@@ -217,11 +211,9 @@ function goToPhase(index) {
 
 function adjustRemainingTime(deltaSeconds) {
   if (currentPhase < 0) return;
-  const phases = getPhases();
-  const phaseStart = phases.slice(0, currentPhase).reduce((sum, phase) => sum + phase.seconds, 0);
-  const remaining = Math.max(0, phaseStart + phases[currentPhase].seconds - getElapsedSeconds());
-  const adjustment = Math.max(deltaSeconds, -remaining);
-  phaseAdjustments[currentPhase] += adjustment;
+  const totalSeconds = getTotalDurationSeconds();
+  elapsedBeforeStart = Math.min(totalSeconds, Math.max(0, getElapsedSeconds() - deltaSeconds));
+  if (startedAt !== null) startedAt = Date.now();
   update();
 }
 
