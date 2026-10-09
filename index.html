@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#f7f5f0" />
+    <meta name="theme-color" content="#ece6da" />
     <meta
       name="description"
       content="FunCode KOBEの授業を、もくもくタイム・休憩・なるほどタイムに沿って進行するタイマーです。"
@@ -12,25 +12,57 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Zen+Kaku+Gothic+New:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body data-phase="focus">
     <main class="app-shell">
       <header class="topbar">
         <a class="brand" href="./" aria-label="FunCode KOBE 授業タイマー">
-          <span class="brand-mark" aria-hidden="true">&lt;/&gt;</span>
+          <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+            <path class="brand-bracket" d="M11 9 4.5 16 11 23" />
+            <path class="brand-bracket" d="M21 9l6.5 7L21 23" />
+            <circle class="brand-dot" cx="16" cy="16" r="2.4" />
+          </svg>
           <span class="brand-name">FunCode <span>KOBE</span></span>
+          <span class="brand-sub">授業タイマー</span>
         </a>
         <div class="topbar-actions">
-          <span class="topbar-label">LESSON TIMER</span>
-          <button class="topbar-button" id="mute-button" type="button" aria-label="サウンドを消音" aria-pressed="false">
-            <span aria-hidden="true">🔊</span>
+          <label class="sound-setting" for="sound-select">
+            <span>終了音</span>
+            <select id="sound-select" aria-label="タイム終了音">
+              <option value="bell">ベル</option>
+              <option value="chime">チャイム</option>
+              <option value="soft">やさしい音</option>
+            </select>
+          </label>
+          <button class="icon-button" id="mute-button" type="button" aria-label="サウンドを消音" aria-pressed="false">
+            <svg class="icon icon-sound-on" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M11 5 6 9H2v6h4l5 4V5z" />
+              <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+              <path d="M19 5a9 9 0 0 1 0 14" />
+            </svg>
+            <svg class="icon icon-sound-off" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M11 5 6 9H2v6h4l5 4V5z" />
+              <path d="m22 9-6 6" />
+              <path d="m16 9 6 6" />
+            </svg>
           </button>
-          <button class="topbar-button" id="fullscreen-button" type="button" aria-label="画面を最大化" aria-pressed="false">
-            <span aria-hidden="true">⛶</span>
+          <button class="icon-button" id="fullscreen-button" type="button" aria-label="画面を最大化" aria-pressed="false">
+            <svg class="icon icon-expand" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+              <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
+              <path d="M3 16v3a2 2 0 0 0 2 2h3" />
+              <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
+            </svg>
+            <svg class="icon icon-collapse" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 3v3a2 2 0 0 1-2 2H3" />
+              <path d="M21 8h-3a2 2 0 0 1-2-2V3" />
+              <path d="M3 16h3a2 2 0 0 1 2 2v3" />
+              <path d="M16 21v-3a2 2 0 0 1 2-2h3" />
+            </svg>
           </button>
         </div>
       </header>
@@ -43,40 +75,42 @@
           </div>
           <label class="duration-picker" for="duration">
             <span>授業時間</span>
-            <span class="select-wrap">
-              <select id="duration" aria-label="授業時間">
-                <option value="70">70分</option>
-                <option value="85" selected>85分</option>
-                <option value="95">95分</option>
-                <option value="115">115分</option>
-                <option value="145">145分</option>
-                <option value="custom">その他</option>
-              </select>
-              <span class="select-chevron" aria-hidden="true">⌄</span>
-            </span>
+            <select id="duration" aria-label="授業時間">
+              <option value="70">70分</option>
+              <option value="85" selected>85分</option>
+              <option value="95">95分</option>
+              <option value="115">115分</option>
+              <option value="145">145分</option>
+              <option value="custom">その他</option>
+            </select>
           </label>
         </div>
 
-        <div class="sound-setting">
-          <label for="sound-select">タイム終了音</label>
-          <select id="sound-select" aria-label="タイム終了音">
-            <option value="bell">ベル</option>
-            <option value="chime">チャイム</option>
-            <option value="soft">やさしい音</option>
-          </select>
-        </div>
-
         <div class="timer-display" aria-live="polite">
-          <span class="phase-marker" aria-hidden="true"></span>
-          <p class="phase-name" id="phase-name">もくもくタイム</p>
-          <p class="countdown" id="countdown" role="timer">30:00</p>
-          <div class="time-adjustments" aria-label="残り時間の調整">
+          <div class="dial-area">
+            <div class="dial">
+              <svg class="dial-ring" viewBox="0 0 200 200" aria-hidden="true">
+                <circle class="dial-ticks" cx="100" cy="100" r="87" pathLength="60" />
+                <circle class="dial-track" cx="100" cy="100" r="95" />
+                <g class="dial-hand" id="dial-hand">
+                  <circle class="dial-arc" id="dial-arc" cx="100" cy="100" r="95" pathLength="100" />
+                  <circle class="dial-dot" cx="195" cy="100" r="3.6" />
+                </g>
+              </svg>
+              <div class="dial-content">
+                <span class="phase-marker" aria-hidden="true"></span>
+                <p class="phase-name" id="phase-name">もくもくタイム</p>
+                <p class="countdown" id="countdown" role="timer">30:00</p>
+                <p class="phase-caption" id="phase-caption">自分のペースで、集中しよう。</p>
+              </div>
+            </div>
+          </div>
+          <div class="time-adjustments" role="group" aria-label="残り時間の調整">
             <button class="time-adjust-button" type="button" data-adjust-seconds="-60" aria-label="残り時間を1分減らす">-1:00</button>
             <button class="time-adjust-button" type="button" data-adjust-seconds="-30" aria-label="残り時間を30秒減らす">-0:30</button>
             <button class="time-adjust-button" type="button" data-adjust-seconds="30" aria-label="残り時間を30秒増やす">+0:30</button>
             <button class="time-adjust-button" type="button" data-adjust-seconds="60" aria-label="残り時間を1分増やす">+1:00</button>
           </div>
-          <p class="phase-caption" id="phase-caption">自分のペースで、集中しよう。</p>
         </div>
 
         <div class="progress-section">
@@ -94,16 +128,27 @@
             aria-valuenow="0"
           >
             <span class="progress-fill" id="progress-fill"></span>
+            <span class="progress-tick" aria-hidden="true"></span>
+            <span class="progress-tick" aria-hidden="true"></span>
+            <span class="progress-tick" aria-hidden="true"></span>
+            <span class="progress-tick" aria-hidden="true"></span>
           </div>
         </div>
 
         <div class="controls">
           <button class="button button-primary" id="start-button" type="button">
-            <span class="button-icon" aria-hidden="true">▶</span>
+            <span class="button-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.5 4.6v14.8a.9.9 0 0 0 1.4.8l11.2-7.4a.9.9 0 0 0 0-1.5L8.9 3.8a.9.9 0 0 0-1.4.8z" /></svg>
+            </span>
             <span>スタート</span>
           </button>
           <button class="button button-secondary" id="reset-button" type="button">
-            <span class="button-icon reset-icon" aria-hidden="true">↻</span>
+            <span class="button-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+            </span>
             <span>リセット</span>
           </button>
         </div>
@@ -120,40 +165,46 @@
           <span class="schedule-total" id="schedule-total">全 85 分</span>
         </div>
         <nav class="phase-navigation" aria-label="タイムの移動">
-          <button class="phase-nav-button" id="previous-phase" type="button">← 前のタイム</button>
+          <button class="phase-nav-button" id="previous-phase" type="button">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5" /><path d="m12 19-7-7 7-7" /></svg>
+            <span>前のタイム</span>
+          </button>
           <span class="phase-position" id="phase-position" aria-live="polite">1 / 5</span>
-          <button class="phase-nav-button" id="next-phase" type="button">次のタイム →</button>
+          <button class="phase-nav-button" id="next-phase" type="button">
+            <span>次のタイム</span>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+          </button>
         </nav>
         <ol class="schedule-list" id="schedule-list">
-          <li class="schedule-item is-active" data-phase="0">
+          <li class="schedule-item is-active" data-phase="0" data-phase-color="focus">
             <button class="schedule-item-button" type="button" aria-current="step">
               <span class="schedule-number">01</span>
               <span class="schedule-name">もくもくタイム</span>
               <span class="schedule-duration">30分</span>
             </button>
           </li>
-          <li class="schedule-item" data-phase="1">
+          <li class="schedule-item" data-phase="1" data-phase-color="break">
             <button class="schedule-item-button" type="button">
               <span class="schedule-number">02</span>
               <span class="schedule-name">休憩</span>
               <span class="schedule-duration">5分</span>
             </button>
           </li>
-          <li class="schedule-item" data-phase="2">
+          <li class="schedule-item" data-phase="2" data-phase-color="learn">
             <button class="schedule-item-button" type="button">
               <span class="schedule-number">03</span>
               <span class="schedule-name">なるほどタイム</span>
               <span class="schedule-duration">25分</span>
             </button>
           </li>
-          <li class="schedule-item" data-phase="3">
+          <li class="schedule-item" data-phase="3" data-phase-color="break">
             <button class="schedule-item-button" type="button">
               <span class="schedule-number">04</span>
               <span class="schedule-name">休憩</span>
               <span class="schedule-duration">5分</span>
             </button>
           </li>
-          <li class="schedule-item" data-phase="4">
+          <li class="schedule-item" data-phase="4" data-phase-color="focus">
             <button class="schedule-item-button" type="button">
               <span class="schedule-number">05</span>
               <span class="schedule-name">もくもくタイム</span>
