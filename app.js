@@ -315,7 +315,7 @@ fullscreenButton.disabled = !document.fullscreenEnabled;
 fullscreenButton.addEventListener("click", async () => {
   try {
     if (document.fullscreenElement) await document.exitFullscreen();
-    else await document.querySelector(".app-shell").requestFullscreen();
+    else await document.documentElement.requestFullscreen();
   } catch {
     statusMessage.textContent = "全画面表示にできませんでした";
   }
