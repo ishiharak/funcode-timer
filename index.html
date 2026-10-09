@@ -94,7 +94,6 @@
                 <circle class="dial-track" cx="100" cy="100" r="95" />
                 <g class="dial-hand" id="dial-hand">
                   <circle class="dial-arc" id="dial-arc" cx="100" cy="100" r="95" pathLength="100" />
-                  <circle class="dial-dot" cx="195" cy="100" r="3.6" />
                 </g>
               </svg>
               <div class="dial-content">
@@ -103,13 +102,10 @@
                 <p class="countdown" id="countdown" role="timer">30:00</p>
                 <p class="phase-caption" id="phase-caption">自分のペースで、集中しよう。</p>
               </div>
+              <div class="dial-handle" id="dial-handle" aria-hidden="true">
+                <span class="dial-handle-knob" id="dial-handle-knob" title="ドラッグして現在時刻を変更"></span>
+              </div>
             </div>
-          </div>
-          <div class="time-adjustments" role="group" aria-label="残り時間の調整">
-            <button class="time-adjust-button" type="button" data-adjust-seconds="-60" aria-label="残り時間を1分減らす">-1:00</button>
-            <button class="time-adjust-button" type="button" data-adjust-seconds="-30" aria-label="残り時間を30秒減らす">-0:30</button>
-            <button class="time-adjust-button" type="button" data-adjust-seconds="30" aria-label="残り時間を30秒増やす">+0:30</button>
-            <button class="time-adjust-button" type="button" data-adjust-seconds="60" aria-label="残り時間を1分増やす">+1:00</button>
           </div>
         </div>
 
@@ -132,6 +128,7 @@
             <span class="progress-tick" aria-hidden="true"></span>
             <span class="progress-tick" aria-hidden="true"></span>
             <span class="progress-tick" aria-hidden="true"></span>
+            <span class="progress-handle" id="progress-handle" aria-hidden="true" title="ドラッグして現在時刻を変更"></span>
           </div>
         </div>
 
