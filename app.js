@@ -8,6 +8,11 @@ const phaseDefinitions = [
   { name: "休憩", seconds: 5 * 60, caption: "もうひと休み。あと少し！", color: "break" },
   { name: "もくもくタイム", seconds: 0, caption: "学んだことを、やってみよう。", color: "focus" },
 ];
+const buttonIcons = {
+  play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.5 4.6v14.8a.9.9 0 0 0 1.4.8l11.2-7.4a.9.9 0 0 0 0-1.5L8.9 3.8a.9.9 0 0 0-1.4.8z" /></svg>',
+  pause:
+    '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5.5" y="4" width="4.5" height="16" rx="1.4" /><rect x="14" y="4" width="4.5" height="16" rx="1.4" /></svg>',
+};
 const completionSounds = {
   bell: { notes: [880, 1174], interval: 0.23, duration: 0.42, harmonic: true },
   chime: { notes: [1046, 1318, 1568], interval: 0.13, duration: 0.28, harmonic: true },
@@ -36,6 +41,9 @@ const customDuration = document.querySelector("#custom-duration");
 const muteButton = document.querySelector("#mute-button");
 const fullscreenButton = document.querySelector("#fullscreen-button");
 const timeAdjustButtons = [...document.querySelectorAll(".time-adjust-button")];
+const dialHand = document.querySelector("#dial-hand");
+const dialArc = document.querySelector("#dial-arc");
+const progressTicks = [...document.querySelectorAll(".progress-tick")];
 
 let totalMinutes = DEFAULT_DURATION;
 let elapsedBeforeStart = 0;
@@ -44,6 +52,10 @@ let intervalId = null;
 let currentPhase = 0;
 let muted = false;
 let audioContext = null;
+
+function setStartButton(icon, label) {
+  startButton.innerHTML = `<span class="button-icon" aria-hidden="true">${buttonIcons[icon]}</span><span>${label}</span>`;
+}
 
 function getElapsedSeconds() {
   return elapsedBeforeStart + (startedAt === null ? 0 : (Date.now() - startedAt) / 1000);
@@ -95,7 +107,15 @@ function update(shouldPlayPhaseSound = false) {
     phaseCaption.textContent = phases[currentPhase].caption;
   }
 
-  document.querySelector(".phase-marker").dataset.phaseColor = completed ? "complete" : phases[currentPhase].color;
+  document.body.dataset.phase = completed ? "complete" : phases[currentPhase].color;
+  const phaseProgress = completed ? 1 : Math.min(1, Math.max(0, (elapsed - phaseStart) / phases[currentPhase].seconds));
+  dialHand.style.transform = `rotate(${phaseProgress * 360 - 90}deg)`;
+  dialArc.style.strokeDasharray = `${(1 - phaseProgress) * 100} 100`;
+  let boundary = 0;
+  progressTicks.forEach((tick, index) => {
+    boundary += phases[index].seconds;
+    tick.style.left = `${(boundary / totalSeconds) * 100}%`;
+  });
   progressFill.style.width = `${(elapsed / totalSeconds) * 100}%`;
   progressLabel.innerHTML = `${Math.floor(elapsed / 60)}<span class="progress-divider"> / </span>${formatMinutes(totalSeconds)}分`;
   progressTrack.setAttribute("aria-valuemax", String(totalSeconds / 60));
@@ -144,7 +164,7 @@ function startTimer() {
   prepareAudio();
   startedAt = Date.now();
   intervalId = window.setInterval(() => update(true), 200);
-  startButton.innerHTML = '<span class="button-icon" aria-hidden="true">Ⅱ</span><span>一時停止</span>';
+  setStartButton("pause", "一時停止");
   statusMessage.textContent = "授業中";
   update();
 }
@@ -154,7 +174,7 @@ function pauseTimer() {
   elapsedBeforeStart = getElapsedSeconds();
   startedAt = null;
   stopTimer();
-  startButton.innerHTML = '<span class="button-icon" aria-hidden="true">▶</span><span>再開</span>';
+  setStartButton("play", "再開");
   statusMessage.textContent = "一時停止中";
   update();
 }
@@ -164,7 +184,7 @@ function resetTimer() {
   elapsedBeforeStart = 0;
   startedAt = null;
   startButton.disabled = false;
-  startButton.innerHTML = '<span class="button-icon" aria-hidden="true">▶</span><span>スタート</span>';
+  setStartButton("play", "スタート");
   durationSelect.disabled = false;
   statusMessage.textContent = "準備ができたらスタート";
   update();
@@ -176,11 +196,8 @@ function setDuration(minutes) {
   totalMinutes = minutes;
   startedAt = wasRunning ? Date.now() : null;
   startButton.disabled = false;
-  startButton.innerHTML = wasRunning
-    ? '<span class="button-icon" aria-hidden="true">Ⅱ</span><span>一時停止</span>'
-    : elapsedBeforeStart > 0
-      ? '<span class="button-icon" aria-hidden="true">▶</span><span>再開</span>'
-      : '<span class="button-icon" aria-hidden="true">▶</span><span>スタート</span>';
+  if (wasRunning) setStartButton("pause", "一時停止");
+  else setStartButton("play", elapsedBeforeStart > 0 ? "再開" : "スタート");
   statusMessage.textContent = wasRunning
     ? "授業中"
     : elapsedBeforeStart > 0
@@ -199,11 +216,11 @@ function goToPhase(index) {
 
   if (wasRunning) {
     intervalId = window.setInterval(update, 200);
-    startButton.innerHTML = '<span class="button-icon" aria-hidden="true">Ⅱ</span><span>一時停止</span>';
+    setStartButton("pause", "一時停止");
     statusMessage.textContent = "授業中";
   } else {
     startButton.disabled = false;
-    startButton.innerHTML = '<span class="button-icon" aria-hidden="true">▶</span><span>再開</span>';
+    setStartButton("play", "再開");
     statusMessage.textContent = "一時停止中";
   }
   update();
@@ -308,7 +325,6 @@ muteButton.addEventListener("click", () => {
   muted = !muted;
   muteButton.setAttribute("aria-pressed", String(muted));
   muteButton.setAttribute("aria-label", muted ? "サウンドをオン" : "サウンドを消音");
-  muteButton.querySelector("span").textContent = muted ? "🔇" : "🔊";
 });
 
 fullscreenButton.disabled = !document.fullscreenEnabled;
