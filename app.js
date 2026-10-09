@@ -1,10 +1,10 @@
-const DEFAULT_DURATION = 90;
-const MIN_DURATION = 61;
+const DEFAULT_DURATION = 85;
+const MIN_DURATION = 66;
 const MAX_DURATION = 240;
 const phaseDefinitions = [
   { name: "もくもくタイム", seconds: 30 * 60, caption: "自分のペースで、集中しよう。", color: "focus" },
   { name: "休憩", seconds: 5 * 60, caption: "少し休んで、リフレッシュ。", color: "break" },
-  { name: "なるほどタイム", seconds: 20 * 60, caption: "みんなで一緒に考えてみよう。", color: "learn" },
+  { name: "なるほどタイム", seconds: 25 * 60, caption: "みんなで一緒に考えてみよう。", color: "learn" },
   { name: "休憩", seconds: 5 * 60, caption: "もうひと休み。あと少し！", color: "break" },
   { name: "もくもくタイム", seconds: 0, caption: "学んだことを、やってみよう。", color: "focus" },
 ];
