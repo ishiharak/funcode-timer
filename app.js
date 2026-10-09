@@ -55,7 +55,10 @@ function getPhases() {
   phases.forEach((phase, index) => {
     if (index < phases.length - 1) phase.seconds += phaseAdjustments[index];
   });
-  phases[4].seconds = totalMinutes * 60 - phases.slice(0, 4).reduce((sum, phase) => sum + phase.seconds, 0);
+  phases[4].seconds =
+    totalMinutes * 60 -
+    phaseDefinitions.slice(0, 4).reduce((sum, phase) => sum + phase.seconds, 0) +
+    phaseAdjustments[4];
   return phases;
 }
 
@@ -124,7 +127,7 @@ function update(shouldPlayPhaseSound = false) {
   previousPhaseButton.disabled = displayedPhase === 0;
   nextPhaseButton.disabled = completed || displayedPhase === phases.length - 1;
   timeAdjustButtons.forEach((button) => {
-    button.disabled = completed || currentPhase === phases.length - 1;
+    button.disabled = completed;
   });
 
   if (completed) {
@@ -220,7 +223,7 @@ function adjustRemainingTime(deltaSeconds) {
   const phases = getPhases();
   const phaseStart = phases.slice(0, currentPhase).reduce((sum, phase) => sum + phase.seconds, 0);
   const remaining = Math.max(0, phaseStart + phases[currentPhase].seconds - getElapsedSeconds());
-  const adjustment = Math.min(Math.max(deltaSeconds, -remaining), phases[4].seconds);
+  const adjustment = Math.max(deltaSeconds, -remaining);
   phaseAdjustments[currentPhase] += adjustment;
   update();
 }
