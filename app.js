@@ -297,14 +297,22 @@ function endSeek(event) {
 function prepareAudio() {
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   if (!AudioContextClass) return;
-  audioContext ??= new AudioContextClass();
-  if (audioContext.state === "suspended") audioContext.resume().catch(() => {});
+  if (!audioContext || audioContext.state === "closed") audioContext = new AudioContextClass();
+  if (audioContext.state !== "running") return audioContext.resume().catch(() => {});
 }
 
-function playCompletionSound() {
+["pointerdown", "keydown", "touchend"].forEach((type) => {
+  document.addEventListener(type, () => prepareAudio(), { passive: true });
+});
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && audioContext) prepareAudio();
+});
+
+async function playCompletionSound() {
   if (muted) return;
-  prepareAudio();
-  if (!audioContext) return;
+  // The context can be suspended again while idle; its clock is frozen until resumed.
+  await prepareAudio();
+  if (!audioContext || audioContext.state !== "running") return;
   const sound = completionSounds[soundSelect.value] ?? completionSounds.bell;
   const playTone = (frequency, volume, startTime, duration) => {
     const oscillator = audioContext.createOscillator();
@@ -319,7 +327,7 @@ function playCompletionSound() {
     oscillator.start(startTime);
     oscillator.stop(startTime + duration);
   };
-  const startTime = audioContext.currentTime;
+  const startTime = audioContext.currentTime + 0.05;
   sound.notes.forEach((frequency, index) => {
     const noteStart = startTime + index * sound.interval;
     playTone(frequency, 0.18, noteStart, sound.duration);
